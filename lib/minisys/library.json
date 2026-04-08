@@ -1,0 +1,16 @@
+{
+  "name": "minisys",
+  "version": "1.0.0",
+  "frameworks": ["arduino"],
+  "platforms": ["espressif8266"],
+  "build": {
+    "flags": [
+      "-I hal/inc",
+      "-I port/ESP8266_arduino"
+    ],
+    "srcFilter": [
+      "+<hal/src/>",
+      "+<port/ESP8266_arduino/>"
+    ]
+  }
+}
