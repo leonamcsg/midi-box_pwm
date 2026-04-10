@@ -1,3 +1,5 @@
+#include "app.h"
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
@@ -10,19 +12,11 @@
 
 gpio_handler_t my_gpio_handler = NULL;
 
-#define PWM_PIN 5
-#define SAMPLING_RATE 44100
-#define LED_PIN 2
-
-#define SSID "Gomes"
-#define PASSWORD "leonam2108"
-#define OTA_PORT 8266
-
 // Estrutura da voz atualizada com o Limiar de Duty Cycle
 struct Voice {
     uint32_t phase;
     uint32_t phaseIncrement;
-    uint32_t dutyThreshold; // NOVO: Controla a largura do pulso (0 a 0xFFFFFFFF)
+    uint32_t dutyThreshold;
     bool active;
 };
 
@@ -39,17 +33,23 @@ static void UI_print_read(void);
 
 ////// ISRs ////////////////////////////
 void IRAM_ATTR onTimerISR() {
-    // NOVO: A comparação agora é feita contra o dutyThreshold (não mais um 50% fixo)
-    bool signal1 = (voices[0].active && (voices[0].phase < voices[0].dutyThreshold));
-    if (voices[0].active) voices[0].phase += voices[0].phaseIncrement;
+    bool signal1 = false;
+    bool signal2 = false;
 
-    bool signal2 = (voices[1].active && (voices[1].phase < voices[1].dutyThreshold));
-    if (voices[1].active) voices[1].phase += voices[1].phaseIncrement;
+    if (voices[0].active) {
+        signal1 = (voices[0].phase < voices[0].dutyThreshold);
+        voices[0].phase += voices[0].phaseIncrement;
+    }
+
+    if (voices[1].active) {
+        signal2 = (voices[1].phase < voices[1].dutyThreshold);
+        voices[1].phase += voices[1].phaseIncrement;
+    }
 
     if (signal1 ^ signal2) {
-        GPOS = (1 << PWM_PIN); // Seta o pino HIGH
+        GPOS = (1 << PWM_PIN);
     } else {
-        GPOC = (1 << PWM_PIN); // Seta o pino LOW
+        GPOC = (1 << PWM_PIN);
     }
 
     timer1_write(80000000 / SAMPLING_RATE);
@@ -74,8 +74,8 @@ void app_setup() {
     ArduinoOTA.setPort(OTA_PORT);
     ArduinoOTA.setHostname("midi-box-esp8266");
 
-    HAL_LOGI(TAG, "Conectando a rede: %s...", SSID);
-    WiFi.begin(SSID, PASSWORD);
+    HAL_LOGI(TAG, "Conectando a rede: %s...", SSID_WiFi);
+    WiFi.begin(SSID_WiFi, PASSWORD);
 
     unsigned long startAttemptTime = millis();
     while (millis() - startAttemptTime < 15000 && WiFi.status() != WL_CONNECTED) {
@@ -166,7 +166,7 @@ static void UI_print_read() {
 
     if (!header_printed) {
         HAL_LOGI("", "\n--- MIDI Box Controller ---\nIP STA (%s):  %s:8888\nIP AP (%s): %s:8888\nComando: freq, voice, [duty, start_time, duration, effect]", 
-            SSID,
+            SSID_WiFi,
             WiFi.localIP().toString().c_str(),
             "MIDI_Box_ESP8266",
             WiFi.softAPIP().toString().c_str());

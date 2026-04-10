@@ -11,7 +11,7 @@ extern "C" {
  * @note Ao definir HAL_LOGGER_ENABLE_ALL 0, nao e nescessario incluir os arquivos hal_logger_interface.c nem hal_logger_driver.c na compilacao
  * 
  */
-#define HAL_LOG_ENABLE_ALL 1
+#define HAL_LOG_ENABLE_ALL 0
 //#define HAL_LOG_ENABLE_I 1
 //#define HAL_LOG_ENABLE_E 1
 //#define HAL_LOG_ENABLE_W 1
