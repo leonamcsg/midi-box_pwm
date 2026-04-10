@@ -50,6 +50,12 @@ def play_midi(file_path):
     finally:
         send_note(0, 0)
         send_note(0, 1)
+        time.sleep(10)
+        send_note(0, 0)
+        send_note(0, 1)
+        time.sleep(10)
+        send_note(0, 0)
+        send_note(0, 1)
 
 def selecionar_arquivo():
     # Debug para você ver onde ele está procurando
